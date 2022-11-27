@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+
+<html>
+
+<head>
+    <link rel="stylesheet" href="projet_button_box.css">
+
+
+
+
+    <title>Button Box</title>
+	<link rel="icon" type="image/x-icon" href="stereo.png">
+
+
+
+
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;1,500&display=swap');
+    </style> 
+
+
+
+</head>
+
+<body>
+
+    <header>
+
+        <h3 class="titre">Button Box</h3>
+    <nav>
+        <ul>
+            <li><a href="../../index/Page_presentation.html">Accueil</a></li>
+            <li><a href="../../projets_accueil/page_projets.html">Projets</a></li>
+            <li><a href="../../index/english_ver.html">Résumé en anglais</a></li>
+        </ul>
+    </nav>
+    </header>
+
+
+    <footer>
+        <h5 class="auteur"> Auteur: Dorian ### </h5>
+    </footer>
+
+
+
+ <!-- Relatif au contenu scrollable de la page -->
+
+
+    <div class="contenu">
+    	<div class="explic">
+    		Cette button box est une commande de mon petit-frère, elle comportera un module RTC 1307, un écran 16x2 avec sa carte i2c, un capteur d'humidité DHT11, un buzzer passif, 10 interrupteurs à bascule, un interrupteur d'urgence, 22 LEDS, un module pavé numérique et un arduino MEGA pour toutes les entrées/sorties.
+    	</div>
+
+
+
+		<div class="explic">
+    		Les fonctionnalités proposées sont: 7 réveils programmables grâce au module RTC. Il seront activables avec les interrupteurs à bascules, un par jour de semaine. Pour les éteindre il faudra presser le bouton d'arrêt d'urgence.
+    	</div>
+
+		<div class="explic">
+    		L'écran LCD affichera l'heure, la date, le temps Unix, la température, l'humidité, les réveils actifs, en cycle de 5 secondes.
+    	</div>
+
+		<div class="explic">
+    		Le pavé numérique permettra de faire des réglages et des sélections, comme rentrer la date actuelle en cas de remplacement de la pile du DS1307, paramétrer l'heure des réveils ainsi que leurs sonneries, régler un timer, et pour finir l'heure de mise en veille et de réveil, qui éteindra chaque LEDS ainsi que le rétro-éclairage de l'écran LCD, qui seront rallumés le lendemain à l'heure paramétrée.
+    	</div>
+		
+		<div class="explic">
+    		Les touches de fonctions citées précédement seront les touches A à D sur le pavé numérique. Ces fonctions seront stockées dans l'EEPROM lorsqu'elles seront modifiées, pour conserver l'heure des réveils et autres en cas de coupures de courant.
+    	</div>
+
+		<div class="explic">
+    		Il y aura 5 LEDS de couleurs différentes qui s'allumeront aléatoirement pour ajouter un intérêt visuel, comme si l'appareil faisait des calculs.
+    	</div>
+
+		<img class="explic"src="cablage1.png" alt="cablage" width=50% title="Le cablâge "/>
+
+		<img class="explic"src="boitier.png" alt="boitier" width=50% title="Le boitier pour arduino mega"/>
+
+
+
+
+
+
+			
+
+
+
+
+		
+			<div class="explic">
+J'ai imprimé un boîtier que j'ai trouvé sur Thingiverse pour fixer l'arduino au couvercle de la boîte.
+			</div>
+
+			<div class="explic">
+			Après avoir installé l'arduino j'ai essayé de faire des nappes, et j'ai soudé chaques masses ensemble. J'ai quand même utilisé un multimètre pour voir l'intensité des LEDS, elles faisaient 13.6 mA maximum. J'ai mis des résistances de 220 Ohms sur chacune d'entre elles.
+
+			</div>
+			<div class="explic">
+			Pour les interrupteurs j'ai utilisé INPUT_PULLUP ce qui me permet de les brancher sans résistances supplémentaires.
+			
+			</div>
+
+			
+		<img class="explic"src="cablage2.png" alt="Cablage" width=50% title="Le cabmage un peu anarchique"/>
+
+
+			<div class="explic">
+			Bon le câblage est un peu anarchique mais ça fonctionne toujours. Après avoir fait les nappes j'ai connecté toutes les LEDS et interrupteurs. J'ai utilisé un code pour vérifier les entrées/sorties utilisées par chacun.
+			</div>
+
+			<img class="explic"src="pannel.png" alt="Panneau avant" width=50% title="Le panneau avant"/>
+
+
+			<div class="explic">
+				Toujours en utilisant mon code de test j'ai testé chaque éléments au fur et à mesure, l'écran et le module RTC sont en i2c et apparemment ils ne fonctionnaient plus. 
+				</div>
+				<div class="explic">
+					Pourtant ils fonctionnaient bien avant le câblage car j'avais déjà fait des codes fonctionnels. Après de longues heures, j'en ai déduit que lorsque les deux sont branchés simultanément ça plante.
+					</div>
+					<div class="explic">
+						J'ai donc pensé à utiliser une <a href="https://github.com/Poduzov/Arduio-SoftwareI2C-LCD">bibliothèque</a> qui "simule" une liaison i2c mais sur des prises numériques standards, au lieu des prises i2c physiques sur la carte.
+						</div>
+
+						<div class="explic">
+							Et après téléversement, ça refonctionne! J'ai donc laissé l'horloge DS1307 sur les prises physiquess i2c mais l'écran est quant à lui branché sur des prises numériques qui simulent une liaison i2c.
+
+							</div>
+
+							<div class="explic">
+								L'avantage de la bibliothèque pour l'écran garde la même syntaxe qu'avec la vrai liaison i2c donc je peux l'appliquer facilement à mes codes précédents.
+	
+								</div>
+
+
+
+		<div class="explic">
+			Le projet est toujours en cours de fabrication, je ne mettrai pas le code car il est extrêmement long.
+		</div>
+					</div>
+
+
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+   <!-- Ces divs servent de références pour les carrés animés -->
+    <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+
+    
+</body>
+</html>

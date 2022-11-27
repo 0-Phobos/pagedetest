@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+
+
+<html>
+
+<head>
+    <link rel="stylesheet" href="projet_compteur.css">
+
+
+
+
+    <title>Compteur d'abonnés</title>
+	<link rel="icon" type="image/x-icon" href="stereo.png">
+
+
+
+
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;1,500&display=swap');
+    </style> 
+
+
+
+</head>
+
+<body>
+
+    <header>
+
+        <h3 class="titre"> Compteur d'abonnés </h3>
+    <nav>
+        <ul>
+            <li><a href="../../index/Page_presentation.html">Accueil</a></li>
+            <li><a href="../../projets_accueil/page_projets.html">Projets</a></li>
+            <li><a href="../../index/english_ver.html">Résumé en anglais</a></li>
+        </ul>
+    </nav>
+    </header>
+
+
+    <footer>
+        <h5 class="auteur"> Auteur: Dorian ### </h5>
+    </footer>
+
+
+
+ <!-- Relatif au contenu scrollable de la page -->
+
+
+    <div class="contenu">
+    	<div class="explic">
+
+    		L'idée de ce compteur d'abonnés m'est venu en regardant cette vidéo:
+
+    	</div>
+    	
+
+    	<iframe class="explic" width="720" height="480" src="https://www.youtube.com/embed/Arr6F7vheY8">
+		</iframe>
+		<div class="explic">
+		Le but était d'en fabriquer un pour un ami qui  une chaîne Youtube, à l'occasion de son anniversaire.
+		J'ai d'abord commandé un nodeMCU avec un esp32 intégrer pour pouvoir me connecter au Wi-Fi et commencer à tester des codes.
+		</div>
+
+		<img class="explic"src="node_mcu.png" alt="Node MCU" width=40% title="Un nodeMCU intégrant un esp32 permettant de se connecter au Wi-Fi"/>
+							<div class="explic">
+			Ci-dessous le code, un peu long, et surtout il ne fonctionnait pas. J'ai donc commencé à enlever ce qui était superflu et à rajouter des modifications petit à petit.
+		</div>
+		<div class="code">
+
+
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">// ----------------------------</span>
+<span style="color: #008800; font-style: italic">// Standard Libraries</span>
+<span style="color: #008800; font-style: italic">// ---------------------------</span>
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;ESP8266WiFi.h&gt;
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;WiFiClientSecure.h&gt;
+
+<span style="color: #008800; font-style: italic">// ----------------------------</span>
+<span style="color: #008800; font-style: italic">// Additional Libraries - each one of these will need to be installed.</span>
+<span style="color: #008800; font-style: italic">// ----------------------------</span>
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;YoutubeApi.h&gt;
+
+<span style="color: #008800; font-style: italic">//Seven segment pins attachecd with nodemcu pins  </span>
+<span style="color: #008080">#define a D4</span>
+<span style="color: #008080">#define b  D0</span>
+<span style="color: #008080">#define c  D8</span>
+<span style="color: #008080">#define d  D9</span>
+<span style="color: #008080">#define e  D10</span>
+<span style="color: #008080">#define f  D3</span>
+<span style="color: #008080">#define g  D7</span>
+<span style="color: #008080">#define GND1  D5</span>
+<span style="color: #008080">#define GND2  D2</span>
+<span style="color: #008080">#define GND3  D1</span>
+<span style="color: #008080">#define GND4  D6</span>
+<span style="color: #000080; font-weight: bold">int</span> dig1 = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">int</span> dig2 = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">int</span> dig3 = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">long</span> subscribers = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">long</span> fourd = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">long</span> oned = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">long</span> twod = <span style="color: #0000FF">0</span>;
+<span style="color: #000080; font-weight: bold">long</span> threed = <span style="color: #0000FF">0</span>;
+
+<span style="color: #008800; font-style: italic">//------- Replace the following! ------</span>
+<span style="color: #000080; font-weight: bold">char</span> ssid[] = <span style="color: #0000FF">&quot;Nom du Wifi&quot;</span>;       <span style="color: #008800; font-style: italic">// your network SSID (name)</span>
+<span style="color: #000080; font-weight: bold">char</span> password[] = <span style="color: #0000FF">&quot;Code wifi&quot;</span>;  <span style="color: #008800; font-style: italic">// your network key</span>
+<span style="color: #008080">#define API_KEY &quot;Clé API&quot;  // your google apps API Token</span>
+<span style="color: #008080">#define CHANNEL_ID &quot;ID de la chaîne&quot; // makes up the url of channel</span>
+<span style="color: #008800; font-style: italic">//------- ---------------------- ------</span>
+
+WiFiClientSecure client;
+YoutubeApi api(API_KEY, client);
+
+unsigned <span style="color: #000080; font-weight: bold">long</span> timeBetweenRequests = <span style="color: #0000FF">60000</span>;
+unsigned <span style="color: #000080; font-weight: bold">long</span> nextRunTime;
+
+<span style="color: #000080; font-weight: bold">long</span> subs = <span style="color: #0000FF">0</span>;
+
+<span style="color: #000080; font-weight: bold">void</span> setup() {
+
+  Serial.begin(<span style="color: #0000FF">115200</span>);
+  <span style="color: #008800; font-style: italic">// </span>
+  pinMode(a, OUTPUT);
+  pinMode(b, OUTPUT);
+  pinMode(c, OUTPUT);
+  pinMode(d, OUTPUT);
+  pinMode(e, OUTPUT);
+  pinMode(f, OUTPUT);
+  pinMode(g, OUTPUT);
+  pinMode(GND1, OUTPUT);
+  pinMode(GND2, OUTPUT);
+  pinMode(GND3, OUTPUT);
+  pinMode(GND4, OUTPUT); 
+
+  
+  <span style="color: #008800; font-style: italic">// Set WiFi to station mode and disconnect from an AP if it was Previously</span>
+  <span style="color: #008800; font-style: italic">// connected</span>
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(<span style="color: #0000FF">100</span>);
+
+  <span style="color: #008800; font-style: italic">// Attempt to connect to Wifi network:</span>
+  Serial.print(<span style="color: #0000FF">&quot;Connecting Wifi: &quot;</span>);
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  <span style="color: #000080; font-weight: bold">while</span> (WiFi.status() != WL_CONNECTED) {
+    Serial.print(<span style="color: #0000FF">&quot;.&quot;</span>);
+    delay(<span style="color: #0000FF">500</span>);
+  }
+  Serial.println(<span style="color: #0000FF">&quot;&quot;</span>);
+  Serial.println(<span style="color: #0000FF">&quot;WiFi connected&quot;</span>);
+  Serial.println(<span style="color: #0000FF">&quot;IP address: &quot;</span>);
+  IPAddress ip = WiFi.localIP();
+  Serial.println(ip);
+
+  <span style="color: #008800; font-style: italic">// Requis si ESP8266 V2.5 or above</span>
+  client.setInsecure();
+
+  <span style="color: #008800; font-style: italic">// If you want to enable some extra debugging</span>
+  api._debug = <span style="color: #000080; font-weight: bold">true</span>;
+}
+
+<span style="color: #000080; font-weight: bold">void</span> loop() {
+
+
+ 
+  <span style="color: #000080; font-weight: bold">if</span> (millis() &gt; nextRunTime)  {
+    <span style="color: #000080; font-weight: bold">if</span>(api.getChannelStatistics(CHANNEL_ID))
+    {
+        <span style="color: #000080; font-weight: bold">for</span> (<span style="color: #000080; font-weight: bold">int</span> i = <span style="color: #0000FF">1</span>; i &lt;= <span style="color: #0000FF">200</span>; i++){
+    digitalWrite( GND4, HIGH);    <span style="color: #008800; font-style: italic">//digit 4</span>
+        DisplayNumber(<span style="color: #0000FF">10</span>);
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND4, LOW);
+
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND3, LOW);
+        
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND2, LOW);
+
+        digitalWrite( GND1, HIGH);   <span style="color: #008800; font-style: italic">//digit 1</span>
+        DisplayNumber(<span style="color: #0000FF">10</span>);
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND1, LOW);
+  }
+      Serial.println(<span style="color: #0000FF">&quot;---------Stats---------&quot;</span>);
+      Serial.print(<span style="color: #0000FF">&quot;Subscriber Count: &quot;</span>);
+      
+      Serial.println(api.channelStats.subscriberCount);
+      subscribers = api.channelStats.subscriberCount;
+      oned = (subscribers / <span style="color: #0000FF">1</span>U) %<span style="color: #0000FF">10</span>;
+      twod = (subscribers / <span style="color: #0000FF">10</span>U) %<span style="color: #0000FF">10</span>;
+      threed = (subscribers / <span style="color: #0000FF">100</span>U) %<span style="color: #0000FF">10</span>;
+      fourd = (subscribers / <span style="color: #0000FF">1000</span>U) %<span style="color: #0000FF">10</span>;
+      
+      Serial.print(<span style="color: #0000FF">&quot;sub digit: &quot;</span>);
+      Serial.println(fourd);
+      Serial.println(threed);
+      Serial.println(twod);
+      Serial.println(oned);
+      Serial.print(<span style="color: #0000FF">&quot;View Count: &quot;</span>);
+      Serial.println(api.channelStats.viewCount);
+      Serial.print(<span style="color: #0000FF">&quot;Comment Count: &quot;</span>);
+      Serial.println(api.channelStats.commentCount);
+      Serial.print(<span style="color: #0000FF">&quot;Video Count: &quot;</span>);
+      Serial.println(api.channelStats.videoCount);
+      
+      Serial.println(<span style="color: #0000FF">&quot;------------------------&quot;</span>);
+
+    }
+    nextRunTime = millis() + timeBetweenRequests;
+  }
+     
+        digitalWrite( GND4, HIGH);    <span style="color: #008800; font-style: italic">//digit 4</span>
+        DisplayNumber(oned);
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND4, LOW);
+
+        digitalWrite( GND3, HIGH);    <span style="color: #008800; font-style: italic">//digit 3</span>
+        DisplayNumber(twod);
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND3, LOW);
+
+        digitalWrite( GND2, HIGH);   <span style="color: #008800; font-style: italic">//digit 2</span>
+        DisplayNumber(threed);
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND2, LOW);
+
+        digitalWrite( GND1, HIGH);   <span style="color: #008800; font-style: italic">//digit 1</span>
+        DisplayNumber(fourd);
+        delay(<span style="color: #0000FF">4</span>);
+        digitalWrite( GND1, LOW);
+
+}
+
+<span style="color: #000080; font-weight: bold">void</span> DisplayNumber(<span style="color: #000080; font-weight: bold">int</span> x) {
+  <span style="color: #000080; font-weight: bold">switch</span> (x) {
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">0</span>: zero(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">1</span>: one(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">2</span>: two(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">3</span>: three(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">4</span>: four(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">5</span>: five(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">6</span>: six(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">7</span>: seven(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">8</span>: eight(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">9</span>: nine(); <span style="color: #000080; font-weight: bold">break</span>;
+    <span style="color: #000080; font-weight: bold">case</span> <span style="color: #0000FF">10</span>: eyesOpened(); <span style="color: #000080; font-weight: bold">break</span>;
+  }
+}
+
+
+
+<span style="color: #000080; font-weight: bold">void</span> zero()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, LOW);
+  digitalWrite( f, LOW);
+  digitalWrite( g, HIGH);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> one()
+{
+  digitalWrite( a, HIGH);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+  digitalWrite( d, HIGH);
+  digitalWrite( e, HIGH);
+  digitalWrite( f, HIGH);
+  digitalWrite( g, HIGH);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> two()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, LOW);
+  digitalWrite( c, HIGH);
+  digitalWrite( d, LOW);
+  digitalWrite( e, LOW);
+  digitalWrite( f, HIGH);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> three()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, HIGH);
+  digitalWrite( f, HIGH);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> four()
+{
+  digitalWrite( a, HIGH);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+  digitalWrite( d, HIGH);
+  digitalWrite( e, HIGH);
+  digitalWrite( f, LOW);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> five()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, HIGH);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, HIGH);
+  digitalWrite( f, LOW);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> six()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, HIGH);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, LOW);
+  digitalWrite( f, LOW);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> seven()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+ digitalWrite( d, HIGH);
+ digitalWrite( e, HIGH);
+  digitalWrite( f, HIGH);
+  digitalWrite( g, HIGH);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> eight()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, LOW);
+  digitalWrite( f, LOW);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> nine()
+{
+  digitalWrite( a, LOW);
+  digitalWrite( b, LOW);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, HIGH);
+  digitalWrite( f, LOW);
+  digitalWrite( g, LOW);
+}
+<span style="color: #000080; font-weight: bold">void</span> oo()
+{
+  digitalWrite( a, HIGH);
+  digitalWrite( b, HIGH);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, LOW);
+  digitalWrite( f, HIGH);
+  digitalWrite( g, LOW);
+}
+
+<span style="color: #000080; font-weight: bold">void</span> eyesOpened(){
+  digitalWrite( a, LOW);
+  digitalWrite( b, HIGH);
+  digitalWrite( c, LOW);
+  digitalWrite( d, LOW);
+  digitalWrite( e, LOW);
+  digitalWrite( f, HIGH);
+  digitalWrite( g, LOW);
+
+}
+</pre></div>
+
+		</div>
+
+
+       	<div class="explic">
+		Pour commencer, j'ai enlevé la partie du code de l'afficheur 7 segements, car j'en ai utilisé un avec une puce MAX7219, qui, avec sa bibliothèque, permet d'afficher directement des nombres sans s'occuper individuellement de chaque led. En plus cela nous permet de réduire le nombres de fils pour l'afficheur.
+		</div>
+
+		<img class="explic"src="max_7219.png" alt="Afficheur" width=40% title="Module 7 segments 8 digits MAX7219, il existe également des matrices de leds équippées de MAX7219"/>
+
+	       	<div class="explic">
+		  Ensuite je me suis connecté avec mon compte google pour accéder à l'API de Youtube et donc récupérer le nombre d'abonnés, le nombre de vidéos, etc..., qui sont actualisé plusieurs fois par heure. Bien-sûr j'ai dû demander une clé qui correspondait à la chaîne youtube en question pour avoir accès à ses statistiques.
+		</div>
+		<img class="explic"src="yt_api.jpg" alt="Api" width=90% title="On peut voir ici le nombre de requêtes que le compteur d'abonnés à fait pednant une période donnés, le temps moyens de réponse et d'autres informations."/>
+		       	<div class="explic">
+		       		j'ai rajouté les bibliothèques requises (notamment remplacer celle esp8266 par celle de l'esp32, wifi.h et wifiClientsecure.h), celle pour l'afficheur.
+		       		J'arrivais à afficher des nombres, mais les variables comme le nombre de vidéos, le nombres total de vues, et le nombre d'abonnés restaient systématiquement à zéro.
+		       		Cependant aucune erreur lors de la compilation, et je pouvais ping depuis mon nodeMCU, impossible de trouver l'erreur.
+		</div>
+
+				       	<div class="explic">
+				       		Finalement après de longues heures de recherches, j'ai trouvé la raison: la bibliothèque permettant de communiquer avec l'API était obsolète, grâce à une vidéo d'une personne qui avait le même soucis j'ai pu trouver une bibliothèque qui fonctionne et la remplacer. Enfin ça fonctionnait!
+		</div>
+
+						       	<div class="explic">
+						       		Ci-dessous le code final, j'en ai profité pour rajouter deux LEDS RGBS qui traînaient dans mon matériel. La PWM se fait un peu différement sur ce microcontrolleur mais c'était de loin la partie la plus facile.
+		</div>
+
+
+		<div class="code">
+			<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;ArduinoJson.h&gt;
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include <span style="color: #0000FF">&quot;DigitLedDisplay.h&quot;</span>
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;YoutubeApi.h&gt;
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;WiFi.h&gt;
+<span style="color: #a61717; background-color: #e3d2d2">#</span>include &lt;WiFiClientSecure.h&gt;
+<span style="color: #008080">#define delayTime 20</span>
+<span style="color: #000080; font-weight: bold">int</span> pwmChannel = <span style="color: #0000FF">0</span>; <span style="color: #008800; font-style: italic">//Choisit le canal 0</span>
+<span style="color: #000080; font-weight: bold">int</span> pwmChannel1 = <span style="color: #0000FF">1</span>; <span style="color: #008800; font-style: italic">//Choisit le canal 0</span>
+<span style="color: #000080; font-weight: bold">int</span> pwmChannel2 = <span style="color: #0000FF">2</span>; <span style="color: #008800; font-style: italic">//Choisit le canal 0</span>
+
+<span style="color: #000080; font-weight: bold">int</span> frequence = <span style="color: #0000FF">1000</span>; <span style="color: #008800; font-style: italic">//Fréquence PWM de 1 KHz</span>
+<span style="color: #000080; font-weight: bold">int</span> resolution = <span style="color: #0000FF">8</span>; <span style="color: #008800; font-style: italic">// Résolution de 8 bits, 256 valeurs possibles</span>
+
+<span style="color: #000080; font-weight: bold">int</span> Red = <span style="color: #0000FF">27</span>;
+<span style="color: #000080; font-weight: bold">int</span> Green = <span style="color: #0000FF">14</span>;
+<span style="color: #000080; font-weight: bold">int</span> Blue = <span style="color: #0000FF">12</span>;
+
+<span style="color: #000080; font-weight: bold">int</span> redVal;
+<span style="color: #000080; font-weight: bold">int</span> blueVal;
+<span style="color: #000080; font-weight: bold">int</span> greenVal;
+
+
+<span style="color: #008800; font-style: italic">// ----------------------------</span>
+<span style="color: #008800; font-style: italic">// Additional Libraries - each one of these will need to be installed.</span>
+<span style="color: #008800; font-style: italic">// ----------------------------</span>
+
+
+<span style="color: #008800; font-style: italic">// Library for connecting to the Youtube API</span>
+
+<span style="color: #008800; font-style: italic">// Search for &quot;youtube&quot; in the Arduino Library Manager</span>
+<span style="color: #008800; font-style: italic">// https://github.com/witnessmenow/arduino-youtube-api</span>
+
+<span style="color: #008800; font-style: italic">// Library used for parsing Json from the API responses</span>
+
+<span style="color: #008800; font-style: italic">// Search for &quot;Arduino Json&quot; in the Arduino Library manager</span>
+<span style="color: #008800; font-style: italic">// https://github.com/bblanchon/ArduinoJson</span>
+
+<span style="color: #008800; font-style: italic">//------- Replace the following! ------</span>
+<span style="color: #000080; font-weight: bold">char</span> ssid[] = <span style="color: #0000FF">&quot;le SSID de ma box&quot;</span>;       <span style="color: #008800; font-style: italic">// your network SSID (name)</span>
+<span style="color: #000080; font-weight: bold">char</span> password[] = <span style="color: #0000FF">&quot;le mot de passe de ma box&quot;</span>;  <span style="color: #008800; font-style: italic">// your network key</span>
+<span style="color: #008080">#define API_KEY &quot;ma clé d&#39;API&quot;  // your google apps API Token</span>
+<span style="color: #008080">#define CHANNEL_ID &quot;La clé permettant d&#39;identifier sa chaine&quot; // makes up the url of channel</span>
+<span style="color: #008800; font-style: italic">//------- ---------------------- ------</span>
+DigitLedDisplay ld = DigitLedDisplay(<span style="color: #0000FF">18</span>, <span style="color: #0000FF">5</span>, <span style="color: #0000FF">17</span>);
+WiFiClientSecure client;
+YoutubeApi api(<span style="color: #0000FF">&quot;La clé de l&#39;API&quot;</span>, client);
+
+unsigned <span style="color: #000080; font-weight: bold">long</span> timeBetweenRequests = <span style="color: #0000FF">10000</span>;
+unsigned <span style="color: #000080; font-weight: bold">long</span> nextRunTime;
+
+<span style="color: #000080; font-weight: bold">long</span> subs = <span style="color: #0000FF">0</span>;
+
+<span style="color: #000080; font-weight: bold">void</span> setup() {
+
+  Serial.begin(<span style="color: #0000FF">115200</span>);
+
+  <span style="color: #008800; font-style: italic">/* Set the brightness min:1, max:15 */</span>
+  ld.setBright(<span style="color: #0000FF">10</span>);
+
+  <span style="color: #008800; font-style: italic">/* Set the digit count */</span>
+  ld.setDigitLimit(<span style="color: #0000FF">8</span>);
+  <span style="color: #008800; font-style: italic">// Configuration du canal 0 avec la fréquence et la résolution choisie</span>
+  ledcSetup(pwmChannel, frequence, resolution);
+  ledcSetup(pwmChannel1, frequence, resolution);
+  ledcSetup(pwmChannel2, frequence, resolution);
+
+    <span style="color: #008800; font-style: italic">// Assigne le canal PWM au pin 23</span>
+  ledcAttachPin(Red, pwmChannel);
+  ledcAttachPin(Green, pwmChannel1);
+  ledcAttachPin(Blue, pwmChannel2);
+
+    <span style="color: #008800; font-style: italic">// Créer la tension en sortie choisi</span>
+  <span style="color: #008800; font-style: italic">// Attempt to connect to Wifi network:</span>
+  Serial.print(<span style="color: #0000FF">&quot;Connecting Wifi: &quot;</span>);
+  Serial.println(ssid);
+
+  <span style="color: #008800; font-style: italic">/* Explicitly set the ESP32 to be a WiFi-client, otherwise, it by default,</span>
+<span style="color: #008800; font-style: italic">     would try to act as both a client and an access-point and could cause</span>
+<span style="color: #008800; font-style: italic">     network-issues with your other WiFi-devices on your WiFi-network. */</span>
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  <span style="color: #000080; font-weight: bold">while</span> (WiFi.status() != WL_CONNECTED) {
+    Serial.print(<span style="color: #0000FF">&quot;.&quot;</span>);
+    delay(<span style="color: #0000FF">500</span>);
+  }
+  Serial.println(<span style="color: #0000FF">&quot;&quot;</span>);
+  Serial.println(<span style="color: #0000FF">&quot;WiFi connected&quot;</span>);
+  Serial.println(<span style="color: #0000FF">&quot;IP address: &quot;</span>);
+  IPAddress ip = WiFi.localIP();
+  Serial.println(ip);
+client.setInsecure();
+}
+
+
+
+   <span style="color: #000080; font-weight: bold">void</span> loop() {
+
+
+    <span style="color: #000080; font-weight: bold">if</span>(api.getChannelStatistics(CHANNEL_ID))
+    {      
+  <span style="color: #000080; font-weight: bold">int</span> redVal = <span style="color: #0000FF">255</span>;
+  <span style="color: #000080; font-weight: bold">int</span> blueVal = <span style="color: #0000FF">0</span>;
+  <span style="color: #000080; font-weight: bold">int</span> greenVal = <span style="color: #0000FF">0</span>;
+ 
+  <span style="color: #000080; font-weight: bold">for</span>( <span style="color: #000080; font-weight: bold">int</span> i = <span style="color: #0000FF">0</span> ; i &lt; <span style="color: #0000FF">255</span> ; i += <span style="color: #0000FF">1</span> )
+  
+  {
+    greenVal += <span style="color: #0000FF">1</span>;
+    redVal -= <span style="color: #0000FF">1</span>;
+    ledcWrite(pwmChannel1, <span style="color: #0000FF">255</span> - greenVal ); <span style="color: #008800; font-style: italic">//1.65 V</span>
+    ledcWrite(pwmChannel, <span style="color: #0000FF">255</span> - redVal ); <span style="color: #008800; font-style: italic">//1.65 V</span>
+    delay( delayTime );
+  }
+      ld.clear();
+      ld.printDigit(api.channelStats.videoCount);
+      Serial.print(<span style="color: #0000FF">&quot;Video Count: &quot;</span>);
+      Serial.println(api.channelStats.videoCount);
+      
+      
+
+
+  redVal = <span style="color: #0000FF">0</span>;
+  blueVal = <span style="color: #0000FF">0</span>;
+  greenVal = <span style="color: #0000FF">255</span>;
+  
+  <span style="color: #000080; font-weight: bold">for</span>( <span style="color: #000080; font-weight: bold">int</span> i = <span style="color: #0000FF">0</span> ; i &lt; <span style="color: #0000FF">255</span> ; i += <span style="color: #0000FF">1</span> )
+  {
+    blueVal += <span style="color: #0000FF">1</span>;
+    greenVal -= <span style="color: #0000FF">1</span>;
+
+ledcWrite(pwmChannel2, <span style="color: #0000FF">255</span> - blueVal ); <span style="color: #008800; font-style: italic">//1.65 V</span>
+    ledcWrite(pwmChannel1, <span style="color: #0000FF">255</span> - greenVal );
+    delay( delayTime );
+  }
+
+  
+      ld.clear();
+      ld.printDigit(api.channelStats.viewCount);
+      Serial.print(<span style="color: #0000FF">&quot;View Count: &quot;</span>);
+      Serial.println(api.channelStats.viewCount);
+
+      
+  redVal = <span style="color: #0000FF">0</span>;
+  blueVal = <span style="color: #0000FF">255</span>;
+  greenVal = <span style="color: #0000FF">0</span>;
+  
+  <span style="color: #000080; font-weight: bold">for</span>( <span style="color: #000080; font-weight: bold">int</span> i = <span style="color: #0000FF">0</span> ; i &lt; <span style="color: #0000FF">255</span> ; i += <span style="color: #0000FF">1</span> ){
+    redVal += <span style="color: #0000FF">1</span>;
+    blueVal -= <span style="color: #0000FF">1</span>;
+  ledcWrite(pwmChannel, <span style="color: #0000FF">255</span> - redVal ); <span style="color: #008800; font-style: italic">//1.65 V</span>
+    ledcWrite(pwmChannel2, <span style="color: #0000FF">255</span> - blueVal );
+    delay( delayTime ); 
+  }
+   ld.clear();
+   ld.printDigit(api.channelStats.subscriberCount);
+   Serial.print(<span style="color: #0000FF">&quot;Subscriber Count: &quot;</span>);
+   Serial.println(api.channelStats.subscriberCount);
+   
+}
+}
+		</pre></div>
+
+		</div>
+
+		<div class="explic">
+			Comme le micro-contrôleur ne peut pas gérer deux tâches en même temps, l'écran s'actualisant toutes les 5 secondes et les LEDS baucoup plus vite, cela posait problème car l'écran devenait illisible puiqu'il changeait d'élément à la même fréquence que les LEDS (bien que grâce à millis() on peut se débrouiller mais je ne connaissais pas à l'époque). Donc au final, les LEDS font un fondu entre chaque couleurs, et une fois la couleur atteinte la statistique affichée change, et ainsi de suite.
+
+			On fait varier chaque couleur R G B de 0 à 255 en PWM ce qui fait passer les LEDS par chaque couleur intermédiaire.
+		</div>
+
+				<div class="explic">
+					Une fois que la partie programmation est finie et que tout fonctionne, je garde le code de côté pour pouvoir remplacer les identifiants de la box une fois que je l'aurai offert.
+		</div>
+
+						<div class="explic">
+					Après je suis passé à la modélisation, j'ai décidé de faire rentrer le système dans un bocal en verre, fermé de part et d'autre avec un support imprimé en 3D, qui sera placé horizontalement.
+					</div>
+
+							<div class="explic">
+								J'ai d'abord commencer à relevé les mesures du bocal afin de modéliser les deux bouchons et leurs espacements, et aussi comment je pourrais faire tenir le tout à l'intérieur
+					</div>
+
+					<img class="explic"src="sw_1.jpg" alt="sw" width=70% title="La pièce servant de base avec un crochet pour éviter que le câble se balade"/>
+
+							<div class="explic">
+								J'ai donc modéliser deux bouchons, un avec l'entrée pour la prise microUSB et deux rebords pour tenir la plaque ci-dessous: entouré en rouge, le support pour l'afficheur 7 segments, en vert, les supports pour les deux LEDS, et en orange, des picots que je viendrais faire fondre pour maintenir le nodeMCU en place.
+					</div>
+
+					<img class="explic"src="sw_2.jpg" alt="sw" width=70% title="La plaque"/>
+
+					<img class="explic"src="sw_3.jpg" alt="sw" width=70% title="Le bouchon pour tout maintenir"/>
+
+								<div class="explic">
+								Une fois tout imprimé en 3D, j'ai passé un coup de Dremel sur certains surfaces pour enlever les défauts d'impressions.
+								Voici le compteur assemblé, tout est soudé à même le micro-contrôleur, les résistances des LEDS aussi. Pour éviter qu'il y ai des contacts j'ai mis des manchons sur chaque soudure, et du souplisseau sur les câbles.
+					</div>
+
+					<img class="explic"src="projet_fini.jpg" alt="sw" width=70% title="Le projet fini"/>
+
+
+								<div class="explic">
+								Et enfin le tout installé et sous tension:
+
+					</div>
+					<img class="explic"src="compteur.png" alt="sw" width=70% title="Le projet fini"/>
+
+										<div class="explic">
+							Je n'ai pas de photos de l'assemblage car à part les codes, je ne documente quasiment pas.
+					</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+   <!-- Ces divs servent de références pour les carrés animés -->
+    <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+
+    
+</body>
+</html>

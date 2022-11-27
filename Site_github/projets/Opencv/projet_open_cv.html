@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+
+<html>
+
+<head>
+    <link rel="stylesheet" href="projet_open_cv.css">
+
+
+
+
+    <title>OpenCv & PiCamera</title>
+	<link rel="icon" type="image/x-icon" href="stereo.png">
+
+
+
+
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;1,500&display=swap');
+    </style> 
+
+
+
+</head>
+
+<body>
+
+    <header>
+
+        <h3 class="titre">OpenCv & pi camera</h3>
+    <nav>
+        <ul>
+            <li><a href="../../index/Page_presentation.html">Accueil</a></li>
+            <li><a href="../../projets_accueil/page_projets.html">Projets</a></li>
+            <li><a href="../../index/english_ver.html">Résumé en anglais</a></li>
+        </ul>
+    </nav>
+    </header>
+
+
+    <footer>
+        <h5 class="auteur"> Auteur: Dorian ### </h5>
+    </footer>
+
+
+
+ <!-- Relatif au contenu scrollable de la page -->
+
+
+    <div class="contenu">
+    	<div class="explic">
+    		J'avais une caméra pour raspberry Pi que j'avais achetée pour fabriquer un octopi pour mon imprimante 3D, finalement j'ai trouvé l'idée un peu inutile. Comme j'avais déjà vu des projets de reconaissances d'images à base de raspberry pi sur youtube et autre je me suis dit pourquoi pas essayer.
+    	</div>
+    	
+			
+		<div class="explic">
+			Bon pour commencer j'ai suivi un tuto, qui après une nuit de compilation n'a pas fonctionné.
+		</div>
+
+			<iframe class="explic" width="720" height="480" src="https://www.youtube.com/embed/iOTWZI4RHA8">
+			</iframe>
+
+		
+			<div class="explic">
+			J'ai donc suivi un autre tutoriel.
+			</div>
+		<iframe class="explic" width="720" height="480" src="https://www.youtube.com/embed/7m1dUC_UUts">
+		</iframe>
+			<div class="explic">
+			Je me suis dit que c'était peut-être plus pertinent car cette personne a eu des erreurs, et a expliqué comment les surmonter.
+			</div>
+
+			<div class="explic">
+			La vidéo parlait de <a href="https://singleboardbytes.com/647/install-opencv-raspberry-pi-4.htm">cet article pour l'installation.</a>
+			</div>
+		<div class="explic">
+			J'avais cependant quelques problème au niveau software pour la caméra, en effet raspistill à été remplacé par libcamera dans les versions récentes de Raspbian. Mais après quelques manipulations ça fonctionnait avec raspistill. J'ai essayé plusieurs commandes que j'ai conservées dans un document:</a>
+		</div>
+
+
+ <div class="code">
+
+ 	<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">sudo raspi-config
+sudo nano /boot/config.txt -&gt;ajouter à la ligne dtoverlay -&gt; dtoverlay=ov5647 
+</pre></div>
+
+ </div>
+				<div class="explic">
+			La première permettait d'activer le support "legacy" de la caméra, et la seconde je me souviens plus exactement mais je crois que c'était pour entrer manuellement le modèle de caméra.
+				</div>
+
+
+				<div class="explic">
+			Après avoir tapé toutes ces commandes:
+
+				</div>
+
+
+
+		
+		<div class="code">
+			<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">sudo apt update
+sudo apt upgrade
+
+sudo apt install build-essential cmake pkg-config
+
+sudo apt install libjpeg-dev libtiff5-dev libjasper-dev libpng-dev
+
+sudo apt install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+sudo apt install libxvidcore-dev libx264-dev
+
+sudo apt install libfontconfig1-dev libcairo2-dev
+sudo apt install libgdk-pixbuf2.<span style="color: #0000FF">0</span>-dev libpango1.<span style="color: #0000FF">0</span>-dev
+sudo apt install libgtk2.<span style="color: #0000FF">0</span>-dev libgtk-<span style="color: #0000FF">3</span>-dev
+
+sudo apt install libatlas-<span style="color: #000080; font-weight: bold">base</span>-dev gfortran
+
+sudo apt install libhdf5-dev libhdf5-serial-dev libhdf5-<span style="color: #0000FF">103</span>
+sudo apt install libqt5gui5 libqt5webkit5 libqt5test5 python3-pyqt5
+
+sudo apt install python3-dev
+
+</pre></div>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">pip3 install opencv-python
+</pre></div>
+
+
+		</div>
+
+
+       	<div class="explic">
+		Bon, une fois tout ceci installé, mon code d'exemple me sortait une erreur avec numpy, une bibliothèque Python.
+		Après avoir cherché j'ai ustilisé ces commandes qui ont fonctionnées pour moi:
+		</div>
+
+		<div class="code">
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">sudo apt install -y python3-libcamera python3-kms++
+sudo apt install -y python3-pyqt5 python3-prctl libatlas-<span style="color: #000080; font-weight: bold">base</span>-dev ffmpeg python3-pip
+pip3 install numpy <span style="color: #a61717; background-color: #e3d2d2">–</span>upgrade
+</pre></div>
+
+		</div>
+
+		<div class="explic">
+				Une fois que toutes les erreurs ont été corrigées et que tout est installé ont peut entrer dans le vif du sujet:
+		</div>
+
+					<div class="explic">
+			J'ai tapé les commandes précédentes en parallèle du code trouvé sur cet <a href="https://singleboardbytes.com/647/install-opencv-raspberry-pi-4.htm">article</a> de framboise314. J'ai allégé le code car je voulais juste tester en temps réel sans utiliser de boites mails, mais je trouve que l'idée est intéressante pour faire un système de surveillance ou de comptage.
+			</div>
+					<div class="explic">
+					Tout d'abord je teste si la caméra fonctionne bien:
+					</div>
+
+					<div class="code">
+						<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">from</span> <span style="color: #00aaaa; text-decoration: underline">time</span> <span style="color: #0000aa">import</span> sleep
+<span style="color: #0000aa">from</span> <span style="color: #00aaaa; text-decoration: underline">picamera</span> <span style="color: #0000aa">import</span> PiCamera
+
+camera = PiCamera()
+    
+camera.start_preview()
+</pre></div>
+
+					</div>
+
+					<div class="explic">
+					Une fenêtre s'ouvre et permet de voir à travers la caméra, tout fonctionne bien.
+					</div>
+
+					<div class="code">
+						<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">numpy</span> <span style="color: #0000aa">as</span> <span style="color: #00aaaa; text-decoration: underline">np</span>
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">cv2</span>
+
+cap = cv2.VideoCapture(<span style="color: #009999">0</span>)
+ 
+<span style="color: #0000aa">while</span>(<span style="color: #0000aa">True</span>):
+    ret, frame = cap.read()
+    frame = cv2.flip(frame, -<span style="color: #009999">1</span>) <span style="color: #aaaaaa; font-style: italic"># Flip camera vertically</span>
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    cv2.imshow(<span style="color: #aa5500">&#39;frame&#39;</span>, frame)
+    cv2.imshow(<span style="color: #aa5500">&#39;gray&#39;</span>, gray)
+    <span style="color: #0000aa">if</span> cv2.waitKey(<span style="color: #009999">1</span>) &amp; <span style="color: #009999">0xFF</span> == <span style="color: #00aaaa">ord</span>(<span style="color: #aa5500">&#39;q&#39;</span>):
+        <span style="color: #0000aa">break</span>
+
+cap.release()
+cv2.destroyAllWindows()
+</pre></div>
+
+					</div>
+					<div class="explic">
+					Le code ci-dessus ouvre une fenêtre, et avec l'aide d'OpenCv la transforme en noir & blanc en temps réel. OpenCV fonctionne correctement lui aussi. "Q" permet de fermer la fenêtre.
+					</div>
+
+					<div class="code">
+						<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aaaaaa; font-style: italic"># Ouvrir un terminal et executer la commande ci dessous</span>
+<span style="color: #aaaaaa; font-style: italic"># python3 reconnaissance_objets.py --prototxt MobileNetSSD_deploy.prototxt.txt --model MobileNetSSD_deploy.caffemodel</span>
+
+<span style="color: #aaaaaa; font-style: italic"># importer tout les packages requis</span>
+<span style="color: #0000aa">from</span> <span style="color: #00aaaa; text-decoration: underline">imutils.video</span> <span style="color: #0000aa">import</span> VideoStream
+<span style="color: #0000aa">from</span> <span style="color: #00aaaa; text-decoration: underline">imutils.video</span> <span style="color: #0000aa">import</span> FPS
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">numpy</span> <span style="color: #0000aa">as</span> <span style="color: #00aaaa; text-decoration: underline">np</span>
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">argparse</span>
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">imutils</span>
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">time</span>
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">cv2</span>
+<span style="color: #aaaaaa; font-style: italic"># packages nécessaires pour la gestion des </span>
+
+
+
+<span style="color: #aaaaaa; font-style: italic"># construction des arguments</span>
+ap = argparse.ArgumentParser()
+ap.add_argument(<span style="color: #aa5500">&quot;-p&quot;</span>, <span style="color: #aa5500">&quot;--prototxt&quot;</span>, required=<span style="color: #0000aa">True</span>,
+	help=<span style="color: #aa5500">&quot;path to Caffe &#39;deploy&#39; prototxt file&quot;</span>)
+ap.add_argument(<span style="color: #aa5500">&quot;-m&quot;</span>, <span style="color: #aa5500">&quot;--model&quot;</span>, required=<span style="color: #0000aa">True</span>,
+	help=<span style="color: #aa5500">&quot;path to Caffe pre-trained model&quot;</span>)
+ap.add_argument(<span style="color: #aa5500">&quot;-c&quot;</span>, <span style="color: #aa5500">&quot;--confidence&quot;</span>, <span style="color: #00aaaa">type</span>=<span style="color: #00aaaa">float</span>, default=<span style="color: #009999">0.2</span>,
+	help=<span style="color: #aa5500">&quot;minimum probability to filter weak detections&quot;</span>)
+args = <span style="color: #00aaaa">vars</span>(ap.parse_args())
+
+<span style="color: #aaaaaa; font-style: italic"># initialiser la liste des objets entrainés par MobileNet SSD </span>
+<span style="color: #aaaaaa; font-style: italic"># création du contour de détection avec une couleur attribuée au hasard pour chaque objet</span>
+CLASSES = [<span style="color: #aa5500">&quot;arriere-plan&quot;</span>, <span style="color: #aa5500">&quot;avion&quot;</span>, <span style="color: #aa5500">&quot;velo&quot;</span>, <span style="color: #aa5500">&quot;oiseau&quot;</span>, <span style="color: #aa5500">&quot;bateau&quot;</span>,
+	<span style="color: #aa5500">&quot;bouteille&quot;</span>, <span style="color: #aa5500">&quot;autobus&quot;</span>, <span style="color: #aa5500">&quot;voiture&quot;</span>, <span style="color: #aa5500">&quot;chat&quot;</span>, <span style="color: #aa5500">&quot;chaise&quot;</span>, <span style="color: #aa5500">&quot;vache&quot;</span>, <span style="color: #aa5500">&quot;table&quot;</span>,
+	<span style="color: #aa5500">&quot;chien&quot;</span>, <span style="color: #aa5500">&quot;cheval&quot;</span>, <span style="color: #aa5500">&quot;moto&quot;</span>, <span style="color: #aa5500">&quot;personne&quot;</span>, <span style="color: #aa5500">&quot;plante en pot&quot;</span>, <span style="color: #aa5500">&quot;mouton&quot;</span>,
+	<span style="color: #aa5500">&quot;sofa&quot;</span>, <span style="color: #aa5500">&quot;train&quot;</span>, <span style="color: #aa5500">&quot;moniteur&quot;</span>]
+COLORS = np.random.uniform(<span style="color: #009999">0</span>, <span style="color: #009999">255</span>, size=(<span style="color: #00aaaa">len</span>(CLASSES), <span style="color: #009999">3</span>))
+
+<span style="color: #aaaaaa; font-style: italic"># chargement des fichiers depuis le répertoire de stockage </span>
+<span style="color: #00aaaa">print</span>(<span style="color: #aa5500">&quot; ...chargement du modèle...&quot;</span>)
+net = cv2.dnn.readNetFromCaffe(args[<span style="color: #aa5500">&quot;prototxt&quot;</span>], args[<span style="color: #aa5500">&quot;model&quot;</span>])
+
+<span style="color: #aaaaaa; font-style: italic"># initialiser la caméra du pi, attendre 2s pour la mise au point ,</span>
+<span style="color: #aaaaaa; font-style: italic"># initialiser le compteur FPS</span>
+<span style="color: #00aaaa">print</span>(<span style="color: #aa5500">&quot;...démarrage de la Picamera...&quot;</span>)
+vs = VideoStream(usePiCamera=<span style="color: #0000aa">True</span>, resolution=(<span style="color: #009999">1600</span>, <span style="color: #009999">1200</span>)).start()
+time.sleep(<span style="color: #009999">2.0</span>)
+fps = FPS().start()
+
+<span style="color: #aaaaaa; font-style: italic"># boucle principale du flux vidéo</span>
+<span style="color: #0000aa">while</span> <span style="color: #0000aa">True</span>:
+	<span style="color: #aaaaaa; font-style: italic"># récupération du flux vidéo, redimension </span>
+	<span style="color: #aaaaaa; font-style: italic"># afin d&#39;afficher au maximum 800 pixels </span>
+	frame = vs.read()
+	frame = imutils.resize(frame, width=<span style="color: #009999">800</span>)
+
+	<span style="color: #aaaaaa; font-style: italic"># récupération des dimensions et transformation en collection d&#39;images</span>
+	(h, w) = frame.shape[:<span style="color: #009999">2</span>]
+	blob = cv2.dnn.blobFromImage(cv2.resize(frame, (<span style="color: #009999">300</span>, <span style="color: #009999">300</span>)),
+		<span style="color: #009999">0.007843</span>, (<span style="color: #009999">300</span>, <span style="color: #009999">300</span>), <span style="color: #009999">127.5</span>)
+
+	<span style="color: #aaaaaa; font-style: italic"># determiner la détection et la prédiction </span>
+	net.setInput(blob)
+	detections = net.forward()
+
+	<span style="color: #aaaaaa; font-style: italic"># boucle de détection </span>
+	<span style="color: #0000aa">for</span> i <span style="color: #0000aa">in</span> np.arange(<span style="color: #009999">0</span>, detections.shape[<span style="color: #009999">2</span>]):
+		<span style="color: #aaaaaa; font-style: italic"># calcul de la probabilité de l&#39;objet détecté </span>
+		<span style="color: #aaaaaa; font-style: italic"># en fonction de la prédiction</span>
+		confidence = detections[<span style="color: #009999">0</span>, <span style="color: #009999">0</span>, i, <span style="color: #009999">2</span>]
+		
+		<span style="color: #aaaaaa; font-style: italic"># supprimer les détections faibles </span>
+		<span style="color: #aaaaaa; font-style: italic"># inférieures à la probabilité minimale</span>
+		<span style="color: #0000aa">if</span> confidence &gt; args[<span style="color: #aa5500">&quot;confidence&quot;</span>]:
+			<span style="color: #aaaaaa; font-style: italic"># extraire l&#39;index du type d&#39;objet détecté</span>
+			<span style="color: #aaaaaa; font-style: italic"># calcul des coordonnées de la fenêtre de détection </span>
+			idx = <span style="color: #00aaaa">int</span>(detections[<span style="color: #009999">0</span>, <span style="color: #009999">0</span>, i, <span style="color: #009999">1</span>])
+			box = detections[<span style="color: #009999">0</span>, <span style="color: #009999">0</span>, i, <span style="color: #009999">3</span>:<span style="color: #009999">7</span>] * np.array([w, h, w, h])
+			(startX, startY, endX, endY) = box.astype(<span style="color: #aa5500">&quot;int&quot;</span>)
+
+			<span style="color: #aaaaaa; font-style: italic"># creation du contour autour de l&#39;objet détecté</span>
+			<span style="color: #aaaaaa; font-style: italic"># insertion de la prédiction de l&#39;objet détecté </span>
+			label = <span style="color: #aa5500">&quot;{}: {:.2f}%&quot;</span>.format(CLASSES[idx],
+				confidence * <span style="color: #009999">100</span>)
+			cv2.rectangle(frame, (startX, startY), (endX, endY),
+				COLORS[idx], <span style="color: #009999">2</span>)
+			y = startY - <span style="color: #009999">15</span> <span style="color: #0000aa">if</span> startY - <span style="color: #009999">15</span> &gt; <span style="color: #009999">15</span> <span style="color: #0000aa">else</span> startY + <span style="color: #009999">15</span>
+			cv2.putText(frame, label, (startX, y),
+				cv2.FONT_HERSHEY_SIMPLEX, <span style="color: #009999">0.5</span>, COLORS[idx], <span style="color: #009999">2</span>)
+			<span style="color: #aaaaaa; font-style: italic"># enregistrement de l&#39;image détectée </span>
+			cv2.imwrite(<span style="color: #aa5500">&quot;detection.png&quot;</span>, frame)
+			<span style="color: #00aaaa">print</span>(startX, startY, endX, endY)
+	cv2.imshow(<span style="color: #aa5500">&quot;Frame&quot;</span>, frame)
+	key = cv2.waitKey(<span style="color: #009999">1</span>) &amp; <span style="color: #009999">0xFF</span>
+
+	<span style="color: #aaaaaa; font-style: italic"># la touche q permet d&#39;interrompre la boucle principale</span>
+	<span style="color: #0000aa">if</span> key == <span style="color: #00aaaa">ord</span>(<span style="color: #aa5500">&quot;q&quot;</span>):
+		<span style="color: #0000aa">break</span>
+
+	<span style="color: #aaaaaa; font-style: italic"># mise à jour du FPS </span>
+	fps.update()
+
+<span style="color: #aaaaaa; font-style: italic"># arret du compteur et affichage des informations dans la console</span>
+fps.stop()
+<span style="color: #00aaaa">print</span>(<span style="color: #aa5500">&quot;[INFO] elapsed time: {:.2f}&quot;</span>.format(fps.elapsed()))
+<span style="color: #00aaaa">print</span>(<span style="color: #aa5500">&quot;[INFO] approx. FPS: {:.2f}&quot;</span>.format(fps.fps()))
+
+cv2.destroyAllWindows()
+vs.stop()
+</pre></div>
+
+
+					
+		</div>
+
+		<div class="explic">
+					Le code juste au dessus permet d'afficher la fenêtre avec le nom de l'objet détecté parmi la liste d'éléments auxquels le modèle a été entrainé, comme "Personne", "Chat", "Voiture", etc... C'est pour cela qu'il faut exécuter une commande pour lancer le script tout en ayant la liste d'entrainement de chargée. Cette liste est fournie avec le code mais il en existe d'autres entrainées pour reconnaître d'autres objets / êtres vivants.
+					</div>
+					<div class="code">
+						<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">cd /home/pi/Desktop/reconaissance_objet
+
+
+python3 reconaissance_objets.py --prototxt MobileNetSSD_deploy.prototxt.txt --model MobileNetSSD_deploy.caffemodel
+</pre></div>
+</div>
+
+		<div class="explic">
+							<div class="explic">
+					Une fois la commande exécutée voici le résultat:
+					</div>
+
+<img class="explic"src="opencv_1.jpg" alt="Personne" width=70% title="Ici j'ai recherché une image de personne sur internet et en la plaçant de la caméra on voit que ça la reconnait."/>
+
+
+
+							<div class="explic">J'ai ici mis une image sur mon téléphone mais pour avoir testé en me plaçant devant je peux assurer que cela marche particulièrement bien pour détecter des personnes. On peut aussi voir que ça détecte une chaise, et un moniteur ce n'est donc pas parfait. On peut voir le taux de "confidence" (confiance) dans la reconnaissance de l'algorithme, ainsi que le contour de l'élément détecté.
+					</div>
+
+					<img class="explic"src="opencv_2.jpg" alt="bouteilles" width=70% title="j'ai aussi testé avec des bouteilleso n peut voir que ça fonctionne"/>
+
+										<div class="explic">Les points rouges sont une modification que j'ai apportées au code, qui permet de visualiser le centre de l'élément détecté. Je me suis dit qu'il serait possible de coupler ça avec des servos-moteurs pour faire une sorte de "tourelle" qui suit l'élément détecté jusqu'a ce qu'il soit hors champ. Ce qu'on voit dans la console lors de l'exécution sont d'ailleurs les coordonnées du rectangle autour de l'objet pour calculer ce point.
+					</div>
+					<div class="explic">
+					</div>
+
+										<div class="explic">En conclusion: la raspberry est très lente pour calculer les images, on tourne autour de 0.4 FPS en temps réel. On peut sûrement masquer la fenêtre et réduire la résolution d'entrée dans le code Python. Cependant je trouve ça génial qu'on puisse utiliser de la reconnaissance d'image à notre échelle avec une simple raspberry et quelques lignes de Python. J'ai vu justement un exemple de "traqueur" avec une Jetson Nano, une sorte de raspberry beaucoup plus adaptée aux calculs intensifs:
+					</div>
+
+
+
+
+
+    	<iframe class="explic" width="720" height="480" src="https://www.youtube.com/embed/CW7NGWEK1IU">
+		</iframe>
+
+
+
+					</div>
+
+
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+   <!-- Ces divs servent de références pour les carrés animés -->
+    <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+
+    
+</body>
+</html>

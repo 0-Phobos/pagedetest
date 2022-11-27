@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+
+
+<html>
+
+<head>
+    <link rel="stylesheet" href="projet_sin_scanner3D.css">
+
+
+
+
+    <title>Scanner 3D en terminale SIN</title>
+	<link rel="icon" type="image/x-icon" href="stereo.png">
+
+
+
+
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;1,500&display=swap');
+    </style> 
+
+
+
+</head>
+
+<body>
+
+    <header>
+
+        <h3 class="titre">SCANNER 3D EN TERMINALE SIN</h3>
+    <nav>
+        <ul>
+            <li><a href="../../index/Page_presentation.html">Accueil</a></li>
+            <li><a href="../../projets_accueil/page_projets.html">Projets</a></li>
+            <li><a href="../../index/english_ver.html">Résumé en anglais</a></li>
+        </ul>
+    </nav>
+    </header>
+
+
+    <footer>
+        <h5 class="auteur"> Auteur: Dorian ###</h5>
+    </footer>
+
+
+
+ <!-- Relatif au contenu scrollable de la page -->
+
+
+    <div class="contenu">
+    	<div class="explic">
+    		Ce projet est un de mes projets favoris de par sa complexité et par sa fonctionnalité.
+    	</div>
+    	
+			
+		<div class="explic">
+			On devait choisir un projet pour clôturer notre année de Termianle en STI2D. Etant en SIN (Sciences Informatiques et Numériques), On a choisi ce projet après avoir vu des personnes fabriquer eux-même des appareils pour scanner des objets voir des pièces.
+		</div>
+
+		<div class="explic">
+			Bien sûr il existe de nombreuses technologies permettant de reproduire des objets pour en faire des modèles 3D, beaucoup plus avancées comme la photogrammétrie, ou la technologie LiDAR.
+		</div>
+			<iframe class="explic" width="720" height="480" src="https://www.youtube.com/embed/-qeD2__yK4c">
+			</iframe>
+
+
+			<div class="explic">
+				Pour commencer on a fait une liste du matériel qui nous serait nécessaire. On a pu récupérer beaucoup de pièces détachées d'une vieille imprimante du lycée, une makerBot. 
+			</div>
+			<div class="explic">
+				On a pu notamment récupérer les drivers moteurs, l'axe Z avec sa tige filetée, et une bonne partie du châssis de l'imprimante pour créer notre scanner.
+			</div>
+			<div class="explic">
+				Ce projet a été réalisé en collaboration avec un groupe d'ITEC, qui eux ont fait la partie assemblage et conception du scanner.
+			</div>
+			<img class="explic"src="schema_cablage.png" alt="cablage" width=70% title="Le schéma de cablage de notre scanner"/>
+
+		<div class="explic">
+							<div class="explic">
+								On a commandé le matériel qui nous manquait comme deux condensateurs pour les deux moteurs, le capteur en lui-même, qui mesure dans une plage entre 2 et 15 cm. Il se base sur l'angle du rayon infrarouge qu'il émet pour savoir la distance. C'est un capteur de type SHARP analogique.
+								On a aussi commandé une alimentation 12V 25W de type meanwell.
+					</div>
+
+					<img class="explic"src="lecteur.png" alt="Scanner" width=50% title="Le scanner une fois assemblé."/>
+					<div class="explic">
+			</div>
+					<img class="explic"src="nema17.png" alt="Scanner" width=50% title="Le scanner une fois assemblé."/>
+					<div class="explic">
+					</div>
+					<img class="explic"src="alim.png" alt="Scanner" width=50% title="Le scanner une fois assemblé."/>
+
+
+
+
+<div class="explic">Le plateau rotatif à été usiné par une CNC, les ITEC ont rajouté une réduction à courroie de 1:2 au plateau, ce qui nous permet de gagner encore en précision, mais aussi en stabilité. Ici on ne voit pas très bien mais sur le chariot original de la maker bot on a ajouté un guide imprimé en 3D pour y placer le capteur.
+</div>
+
+<img class="explic"src="scanner_fini.png" alt="Scanner" width=50% title="Le scanner une fois assemblé."/>
+
+					<div class="code">
+						<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #FF0000; background-color: #FFAAAA">#</span>include &lt;SD.h&gt;
+
+<span style="color: #888888">/*ELECTRONOOBS 3D scanner using IR sensor SHARP GP2Y0A51SK0F;</span>
+<span style="color: #888888">  Datasheet GP2Y0A51SK0F: https://www.pololu.com/file/0J845/GP2Y0A41SK0F.pdf.pdf </span>
+<span style="color: #888888">  Tutorial: http://www.electronoobs.com/eng_arduino_tut30.php </span>
+<span style="color: #888888">  YouTube Channel: https://www.youtube.com/channel/UCjiVhIvGmRZixSzupD0sS9Q</span>
+<span style="color: #888888">  SUBSCRIBE!</span>
+
+<span style="color: #888888">  Schematic: http://www.electronoobs.com/eng_arduino_tut30_sch1.php</span>
+<span style="color: #888888">*/</span>
+
+<span style="color: #FF0000; background-color: #FFAAAA">#</span>include &lt;SPI.h&gt;
+<span style="color: #FF0000; background-color: #FFAAAA">#</span>include &lt;SD.h&gt;
+<span style="color: #008800; font-weight: bold">const</span> <span style="color: #333399; font-weight: bold">int</span> DELTAT = <span style="color: #6600EE; font-weight: bold">3000</span>; <span style="color: #888888">//temps en microsecondes entre chaque pas de la descente</span>
+<span style="color: #888888">//Editable variables</span>
+<span style="color: #333399; font-weight: bold">int</span> scan_amount = <span style="color: #6600EE; font-weight: bold">40</span>;                   <span style="color: #888888">//Amaunt of scans for each point. The result is the mean. This would increase the delay for each scan.</span>
+String file=<span style="background-color: #fff0f0">&quot;scan_001.txt&quot;</span>;             <span style="color: #888888">//Name of the saved file on the SD card</span>
+<span style="color: #333399; font-weight: bold">int</span> z_axis_height = <span style="color: #6600EE; font-weight: bold">15</span>; <span style="color: #888888">//in cm         //Maximum height of the scaned file</span>
+<span style="color: #333399; font-weight: bold">int</span> step_delay = <span style="color: #6600EE; font-weight: bold">3000</span>; <span style="color: #888888">//in us          //Delay for each step for the stepper motor in microseconds</span>
+<span style="color: #333399; font-weight: bold">float</span> z_layer_height = <span style="color: #6600EE; font-weight: bold">0.5</span>; <span style="color: #888888">//in mm     //Layer height. The amount of mm for each layer. </span>
+<span style="color: #333399; font-weight: bold">int</span> lead_screw_rotations_per_cm = <span style="color: #6600EE; font-weight: bold">8</span>;    <span style="color: #888888">//How many rotations needs the lead screw to make in order to make 1cm. </span>
+<span style="color: #333399; font-weight: bold">int</span> steps_per_rotation_for_motor = <span style="color: #6600EE; font-weight: bold">200</span>; <span style="color: #888888">//Steps that the motor needs for a full rotation. </span>
+<span style="color: #333399; font-weight: bold">float</span> distance_to_center = <span style="color: #6600EE; font-weight: bold">12.5</span>;             <span style="color: #888888">//In cm. Distance from sensor to the turntable center in cm</span>
+
+<span style="color: #888888">//I/O</span>
+<span style="color: #333399; font-weight: bold">int</span> button = <span style="color: #6600EE; font-weight: bold">2</span>;
+<span style="color: #333399; font-weight: bold">int</span> limit_switch = <span style="color: #6600EE; font-weight: bold">22</span>; <span style="color: #888888">//------------------------------------------------------------------------------------------------------------------------------------------------------- Pin 10 est utilisé par carte sd donc veillez a ça aux branchements</span>
+<span style="color: #888888">//Turntable driver pins</span>
+<span style="color: #333399; font-weight: bold">int</span> dir_r = <span style="color: #6600EE; font-weight: bold">7</span>;
+<span style="color: #333399; font-weight: bold">int</span> step_r = <span style="color: #6600EE; font-weight: bold">8</span>;
+<span style="color: #333399; font-weight: bold">int</span> enable_r = <span style="color: #6600EE; font-weight: bold">4</span>;
+<span style="color: #888888">//Z-axis driver pins</span>
+<span style="color: #333399; font-weight: bold">int</span> dir_z = <span style="color: #6600EE; font-weight: bold">3</span>;
+<span style="color: #333399; font-weight: bold">int</span> step_z = <span style="color: #6600EE; font-weight: bold">5</span>;
+<span style="color: #333399; font-weight: bold">int</span> enable_z = <span style="color: #6600EE; font-weight: bold">6</span>;
+
+<span style="color: #888888">//Variables</span>
+File file_values;           <span style="color: #888888">//Used for the SD card module</span>
+<span style="color: #333399; font-weight: bold">int</span> scan = <span style="color: #6600EE; font-weight: bold">0</span>;               <span style="color: #888888">//Activate/deactivate scanning</span>
+<span style="color: #333399; font-weight: bold">int</span> scan_changed = <span style="color: #6600EE; font-weight: bold">0</span>;       <span style="color: #888888">//Scan process was changed</span>
+<span style="color: #333399; font-weight: bold">float</span> distance = <span style="color: #6600EE; font-weight: bold">0</span>;         <span style="color: #888888">//Measured distance</span>
+<span style="color: #333399; font-weight: bold">float</span> angle = <span style="color: #6600EE; font-weight: bold">0</span>;            <span style="color: #888888">//Rotation angler for each loop (0º-360º)</span>
+<span style="color: #333399; font-weight: bold">float</span> x = <span style="color: #6600EE; font-weight: bold">0</span>;                <span style="color: #888888">//X, Y and Z coordinate</span>
+<span style="color: #333399; font-weight: bold">float</span> y = <span style="color: #6600EE; font-weight: bold">0</span>;
+<span style="color: #333399; font-weight: bold">float</span> z = <span style="color: #6600EE; font-weight: bold">0</span>;
+<span style="color: #333399; font-weight: bold">int</span> z_loop = <span style="color: #6600EE; font-weight: bold">0</span>;             <span style="color: #888888">//variable used for the z-axis motor rotation</span>
+<span style="color: #333399; font-weight: bold">int</span> r_loop = <span style="color: #6600EE; font-weight: bold">0</span>;             <span style="color: #888888">//variable used for the turntable motor rotation</span>
+<span style="color: #333399; font-weight: bold">float</span> measured_analog = <span style="color: #6600EE; font-weight: bold">0</span>;  <span style="color: #888888">//Analog read from the distance sensor</span>
+<span style="color: #333399; font-weight: bold">float</span> analog = <span style="color: #6600EE; font-weight: bold">0</span>;           <span style="color: #888888">//Analog MEAN </span>
+<span style="color: #333399; font-weight: bold">double</span> RADIANS = <span style="color: #6600EE; font-weight: bold">0.0</span>;        <span style="color: #888888">//Angle in radians. We calculate this value later in Setup loop</span>
+<span style="color: #333399; font-weight: bold">int</span> steps_z_height = <span style="color: #6600EE; font-weight: bold">0</span>;     <span style="color: #888888">//Variable used for the amount of steps in z-axis</span>
+<span style="color: #333399; font-weight: bold">int</span> homed = <span style="color: #6600EE; font-weight: bold">0</span>;
+
+
+
+<span style="color: #333399; font-weight: bold">char</span> serial_buffer[<span style="color: #6600EE; font-weight: bold">15</span>];
+
+
+
+
+
+
+
+<span style="color: #008800; font-weight: bold">void</span> <span style="color: #0066BB; font-weight: bold">setup</span>() {
+analogReference(INTERNAL2V56);
+  Serial.begin(<span style="color: #6600EE; font-weight: bold">9600</span>);
+  pinMode(A0, INPUT);
+  pinMode(limit_switch, INPUT);
+  pinMode(button, INPUT);
+  SD.begin(<span style="color: #6600EE; font-weight: bold">10</span>, <span style="color: #6600EE; font-weight: bold">11</span>, <span style="color: #6600EE; font-weight: bold">12</span>, <span style="color: #6600EE; font-weight: bold">13</span>);
+  pinMode(dir_z, OUTPUT);
+  pinMode(step_z, OUTPUT);
+  pinMode(enable_z, OUTPUT);
+  pinMode(dir_r, OUTPUT);
+  pinMode(step_r, OUTPUT);
+  pinMode(enable_r, OUTPUT);
+  digitalWrite(enable_z,HIGH);<span style="color: #888888">//disable the z_azis driver</span>
+  digitalWrite(enable_r,HIGH);<span style="color: #888888">//disable the z_azis driver</span>
+
+
+  <span style="color: #888888">//Calculate variables</span>
+  RADIANS = (<span style="color: #6600EE; font-weight: bold">3.1415926535897932</span> / <span style="color: #6600EE; font-weight: bold">180.0</span>) * <span style="color: #6600EE; font-weight: bold">360</span>/<span style="color: #6600EE; font-weight: bold">400</span> ;
+  steps_z_height = (z_layer_height * steps_per_rotation_for_motor * lead_screw_rotations_per_cm)/<span style="color: #6600EE; font-weight: bold">10</span>;
+
+  
+  <span style="color: #008800; font-weight: bold">while</span>(!digitalRead(limit_switch) &amp;&amp; homed == <span style="color: #6600EE; font-weight: bold">0</span>)
+  {
+    digitalWrite(enable_z,LOW);     <span style="color: #888888">//enable the z_azis driver</span>
+    digitalWrite(dir_z,LOW);       <span style="color: #888888">//z_azis spin to left (lowering z-axis)</span>
+    digitalWrite(step_z,HIGH);      <span style="color: #888888">//z_azis make a step</span>
+    delayMicroseconds(DELTAT);
+    digitalWrite(step_z,LOW);
+    delayMicroseconds(DELTAT);
+  }
+  homed = <span style="color: #6600EE; font-weight: bold">1</span>;
+}
+
+<span style="color: #008800; font-weight: bold">void</span> <span style="color: #0066BB; font-weight: bold">loop</span>() {
+<span style="color: #888888">//Wait till the push button is pressed</span>
+<span style="color: #008800; font-weight: bold">if</span>(digitalRead(button))
+{
+  <span style="color: #008800; font-weight: bold">if</span>(scan == <span style="color: #6600EE; font-weight: bold">1</span> &amp;&amp; scan_changed == <span style="color: #6600EE; font-weight: bold">0</span>)
+  {
+    scan=<span style="color: #6600EE; font-weight: bold">0</span>;
+    delay(<span style="color: #6600EE; font-weight: bold">3000</span>);
+    scan_changed=<span style="color: #6600EE; font-weight: bold">1</span>;
+  }
+  <span style="color: #008800; font-weight: bold">if</span>(scan == <span style="color: #6600EE; font-weight: bold">0</span> &amp;&amp; scan_changed == <span style="color: #6600EE; font-weight: bold">0</span>)
+  {
+    scan=<span style="color: #6600EE; font-weight: bold">1</span>;
+    delay(<span style="color: #6600EE; font-weight: bold">3000</span>);
+    scan_changed=<span style="color: #6600EE; font-weight: bold">1</span>;
+  }
+  scan_changed = <span style="color: #6600EE; font-weight: bold">0</span>;   
+}
+
+
+<span style="color: #888888">//If the scanning proces is ON</span>
+<span style="color: #008800; font-weight: bold">if</span>(scan == <span style="color: #6600EE; font-weight: bold">1</span>)
+{ 
+  <span style="color: #888888">//We stop when we reach the maximum height</span>
+  <span style="color: #008800; font-weight: bold">if</span>(z &lt; z_axis_height)
+  {     
+    <span style="color: #008800; font-weight: bold">for</span>(<span style="color: #333399; font-weight: bold">int</span> loop_cont = <span style="color: #6600EE; font-weight: bold">0</span> ; loop_cont &lt; (steps_per_rotation_for_motor *<span style="color: #6600EE; font-weight: bold">2</span>); loop_cont++)
+    {
+      getDistance();
+      digitalWrite(enable_r,LOW);   <span style="color: #888888">//enable the turntable driver</span>
+      digitalWrite(dir_r,LOW);      <span style="color: #888888">//turntable spin to right</span>
+      digitalWrite(step_r,HIGH);    <span style="color: #888888">//make a step</span>
+      delayMicroseconds(step_delay);
+      digitalWrite(step_r,LOW);
+      delayMicroseconds(step_delay);
+      angle = angle - RADIANS;      <span style="color: #888888">//Increase the angle by one more unit</span>
+      write_to_SD(x,y,z);           <span style="color: #888888">//Write x, y, z files to SD card function</span>
+      
+      <span style="color: #888888">//Uncomment this for Serial debug</span>
+      
+
+    <span style="color: #888888">//Serial.print(distance);</span>
+  <span style="color: #888888">//Serial.print(&quot; &quot;);</span>
+<span style="color: #888888">//Serial.println(angle);</span>
+    }
+    angle = <span style="color: #6600EE; font-weight: bold">0</span>;  <span style="color: #888888">//Reset the angle value for next rotation</span>
+    
+    <span style="color: #888888">/*My threaded rod needs 8 full rotations for 1cm. A full rotation is 200 steps in my case.</span>
+<span style="color: #888888">    We need 1600 for 1cm. So, we need 80 for 0.5mm. The amount is calulated automaically.</span>
+<span style="color: #888888">    Just change the variables at the beginning if you want*/</span>
+    <span style="color: #008800; font-weight: bold">while</span>(z_loop &lt; steps_z_height) 
+    {      
+    digitalWrite(enable_z,LOW);     <span style="color: #888888">//enable the z_azis driver</span>
+    digitalWrite(dir_z,HIGH);        <span style="color: #888888">//z_azis spin to right</span>
+    digitalWrite(step_z,HIGH);      <span style="color: #888888">//z_azis make a step</span>
+    delayMicroseconds(step_delay);
+    digitalWrite(step_z,LOW);
+    delayMicroseconds(step_delay);
+    z_loop = z_loop+<span style="color: #6600EE; font-weight: bold">1</span>;              <span style="color: #888888">//Increase the loop by 1</span>
+    }
+    z = z + z_layer_height;         <span style="color: #888888">//Increase the made z-height by 1 unit</span>
+    z_loop = <span style="color: #6600EE; font-weight: bold">0</span>;                     <span style="color: #888888">//Reset the z-axis rotation variable</span>
+
+}<span style="color: #888888">//end of if z_height  </span>
+
+<span style="color: #888888">//We finished the scan, we stop the drivers</span>
+<span style="color: #008800; font-weight: bold">else</span>
+{
+  digitalWrite(enable_z,HIGH);
+  digitalWrite(enable_r,HIGH);
+}
+
+}<span style="color: #888888">//if scan</span>
+}<span style="color: #888888">//End ov void loop</span>
+
+
+<span style="color: #888888">//Function that gets the distance from sensor</span>
+<span style="color: #333399; font-weight: bold">double</span> <span style="color: #0066BB; font-weight: bold">getDistance</span>()
+{
+  <span style="color: #008800; font-weight: bold">for</span> (<span style="color: #333399; font-weight: bold">int</span> aa=<span style="color: #6600EE; font-weight: bold">0</span>; aa &lt; scan_amount; aa++)
+  {
+    measured_analog= analogRead(A0);
+    delay(<span style="color: #6600EE; font-weight: bold">2</span>);
+    analog = analog + measured_analog;    
+  }
+  distance = analog/scan_amount;        <span style="color: #888888">//Get the mean. Divide the scan by the amount of scans. </span>
+  analog=<span style="color: #6600EE; font-weight: bold">0</span>;<span style="color: #888888">//reset the andlog read total value</span>
+  measured_analog = <span style="color: #6600EE; font-weight: bold">0</span>; <span style="color: #888888">//reset the andlog read value</span>
+  distance = mapFloat(distance,<span style="color: #6600EE; font-weight: bold">0.0</span>,<span style="color: #6600EE; font-weight: bold">1023.0</span>,<span style="color: #6600EE; font-weight: bold">0.0</span>,<span style="color: #6600EE; font-weight: bold">2.56</span>); <span style="color: #888888">//Convert analog pin reading to voltage ------------------------------ j&#39;ai remplacer le 3.3 par le 2.56</span>
+  <span style="color: #888888">//distance = 1.024*pow(-(distance-0.0025)/0.003095)+0.344; //From datasheet</span>
+  distance = <span style="color: #6600EE; font-weight: bold">90.967E-3</span>*exp(-(distance-<span style="color: #6600EE; font-weight: bold">0.38</span>)/<span style="color: #6600EE; font-weight: bold">0.333</span>)+<span style="color: #6600EE; font-weight: bold">22.744E-3</span>; <span style="color: #888888">//From datasheet</span>
+  distance = distance * <span style="color: #6600EE; font-weight: bold">100</span>;
+  <span style="color: #888888">//Serial.print(distance);</span>
+  distance = distance_to_center - distance;  <span style="color: #888888">//the distance d = distance from sensor to center - measured distance</span>
+  <span style="color: #888888">//Serial.print(&quot; &quot;);</span>
+  <span style="color: #888888">//Serial.println(distance);</span>
+  y =  (cos(angle) * distance);  
+  x =  (sin(angle) * distance);  
+     
+  <span style="color: #888888">/*//For debug</span>
+<span style="color: #888888">   * Serial.print(distance); Serial.print(&quot;   &quot;); </span>
+<span style="color: #888888">  Serial.print(x); Serial.print(&quot;   &quot;); </span>
+<span style="color: #888888">  Serial.print(y); Serial.print(&quot;   &quot;); </span>
+<span style="color: #888888">  Serial.print(z); Serial.print(&quot;   &quot;); </span>
+<span style="color: #888888">  Serial.print(angle); Serial.println(&quot;   &quot;); */</span>
+}
+
+
+
+<span style="color: #888888">//Function that maps the value in a float format</span>
+<span style="color: #333399; font-weight: bold">float</span> <span style="color: #0066BB; font-weight: bold">mapFloat</span>(<span style="color: #333399; font-weight: bold">float</span> fval, <span style="color: #333399; font-weight: bold">float</span> val_in_min, <span style="color: #333399; font-weight: bold">float</span> val_in_max, <span style="color: #333399; font-weight: bold">float</span> val_out_min, <span style="color: #333399; font-weight: bold">float</span> val_out_max)
+{
+  <span style="color: #008800; font-weight: bold">return</span> (fval - val_in_min) * (val_out_max - val_out_min) / (val_in_max - val_in_min) + val_out_min;
+}
+
+
+<span style="color: #888888">//Function that writes the value to the SD card</span>
+<span style="color: #008800; font-weight: bold">void</span> <span style="color: #0066BB; font-weight: bold">write_to_SD</span>(<span style="color: #333399; font-weight: bold">float</span> SDx, <span style="color: #333399; font-weight: bold">float</span> SDy, <span style="color: #333399; font-weight: bold">float</span> SDz)
+{
+  file_values = SD.open(<span style="background-color: #fff0f0">&quot;scan_001.txt&quot;</span>, FILE_WRITE);
+  <span style="color: #008800; font-weight: bold">if</span> (file_values) 
+  {
+    file_values.print(x); file_values.print(<span style="background-color: #fff0f0">&quot;,&quot;</span>);
+    <span style="color: #888888">//Serial.print(x);     Serial.print(&quot;,&quot;);</span>
+    file_values.print(y); file_values.print(<span style="background-color: #fff0f0">&quot;,&quot;</span>);
+       <span style="color: #888888">//Serial.print(y);     Serial.print(&quot;,&quot;);</span>
+    file_values.println(z);
+       <span style="color: #888888">//Serial.print(z);</span>
+   
+    file_values.close(); 
+     String p1=<span style="background-color: #fff0f0">&quot;,&quot;</span>;
+    String discriminant=<span style="background-color: #fff0f0">&quot;#&quot;</span>;
+    Serial.println(x*<span style="color: #6600EE; font-weight: bold">10</span> + p1 + y*<span style="color: #6600EE; font-weight: bold">10</span> + p1 + z*<span style="color: #6600EE; font-weight: bold">10</span> + p1);
+    <span style="color: #888888">//sprintf(serial_buffer,&quot;%d\t%d\t%d\t%d\n&quot;, x, y, z);</span>
+  <span style="color: #888888">//Serial.print(serial_buffer);</span>
+    <span style="color: #888888">//sprintf(serial_buffer,&quot;%f\t%f\t%f\t%f\n\0&quot;,(int) x,(int) y,(int) z);</span>
+    <span style="color: #888888">//Serial.print(serial_buffer);</span>
+  }  
+}
+</pre></div>
+
+					</div>
+          <div class="explic">
+						Le code provient d'internet cependant il y avait beaucoup trop d'erreurs et notre matériel n'était pas exactement le même que celui proposé dans le code.
+					</div>
+					<div class="explic">
+						Le code est assez long mais pour décrire très brièvement, on a d'abord une mise à niveau du capteur, ensuite on attend qu'il touche l'interrupteur endstop. Pour lancer le scan on presse un bouton. Le plateau va alors tourner par pas de 1/40 de rotation complète, pendant ce temps le capteur mesure la distance, qui est soustraite à la distance entre le centre du plateau et le capteur. En paralèlle des coordonnées sont crées sur la carte SD. Une fois la rotation complète, le capteur monte de 1mm. Et ce jusqu'a arriver à la fin de l'axe Z.
+					</div>
+
+
+
+
+          
+          <div class="explic">
+						En parallèle de la carte SD on peut connecter le Scanner à un ordinateur pour visualiser en temps réel le nuage de points se former, grâce à un script processing.
+					</div>
+					<div class="code">
+						<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aaaaaa; font-style: italic">// LidarViewer.pde Processing sketch</span>
+<span style="color: #aaaaaa; font-style: italic">// http://www.charleslabs.fr/en/project-3D+Lidar+Scanner+MK2</span>
+
+<span style="color: #aaaaaa; font-style: italic">// Load sketch into Processing, available from:</span>
+<span style="color: #aaaaaa; font-style: italic">// https://processing.org/</span>
+<span style="color: #aaaaaa; font-style: italic">// You also need to install the PeasyCam library: Sketch &gt; Import Library... &gt; Add Library... &gt; Search for &quot;peasycam&quot;</span>
+
+<span style="color: #aaaaaa; font-style: italic">// This software read coordinates of the Arduino Lidar </span>
+<span style="color: #aaaaaa; font-style: italic">// (format: &quot;X Y Z&quot;) and displays it as a 3D point cloud that you</span>
+<span style="color: #aaaaaa; font-style: italic">// can move around using the mouse.</span>
+<span style="color: #aaaaaa; font-style: italic">// Press &#39;s&#39; to save the cloud as a text file.</span>
+<span style="color: #aaaaaa; font-style: italic">// Press &#39;x&#39; to clear the points.</span>
+
+
+
+
+<span style="color: #aaaaaa; font-style: italic">// inclure peasy cam &amp; serial</span>
+
+<span style="color: #aaaaaa; font-style: italic">//  String p1=&quot;,&quot;;</span>
+<span style="color: #aaaaaa; font-style: italic">//    Serial.println(x*10 + p1 + y*10 + p1 + z*10 + p1);</span>
+<span style="color: #aaaaaa; font-style: italic">//pour lire les coordonnées par ce programme</span>
+
+
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">processing.serial.*</span>;
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">peasy.*</span>;
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">java.io.FileWriter</span>;
+<span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">javax.swing.JOptionPane</span>;
+<span style="color: #00aaaa">int</span> lf = <span style="color: #009999">10</span>;    <span style="color: #aaaaaa; font-style: italic">// Linefeed in ASCII</span>
+Serial serial;
+PeasyCam cam;
+<span style="color: #0000aa">final</span> <span style="color: #00aaaa">float</span> angleIncrement=<span style="color: #009999">0.1f</span>;
+
+ArrayList&lt;PVector&gt; pointList;
+
+<span style="color: #0000aa">final</span> <span style="color: #00aaaa">int</span> SERIAL_SPEED = <span style="color: #009999">9600</span>;
+
+<span style="color: #00aaaa">void</span> <span style="color: #00aa00">setup</span>() {
+  size(<span style="color: #009999">1760</span> , <span style="color: #009999">990</span>, P3D);
+  <span style="color: #aaaaaa; font-style: italic">//surface.setResizable(true);</span>
+  
+  surface.<span style="color: #1e90ff">setTitle</span>(<span style="color: #aa5500">&quot;3D Lidar Viewer&quot;</span>);
+  
+  colorMode(RGB, <span style="color: #009999">255</span>, <span style="color: #009999">255</span>, <span style="color: #009999">255</span>);
+  pointList = <span style="color: #0000aa">new</span> ArrayList&lt;PVector&gt;();
+  
+  <span style="color: #aaaaaa; font-style: italic">// PeasyCam</span>
+  cam = <span style="color: #0000aa">new</span> PeasyCam(<span style="color: #0000aa">this</span>, <span style="color: #009999">500</span>);
+  cam.<span style="color: #1e90ff">rotateZ</span>(-<span style="color: #009999">3.1415</span>/<span style="color: #009999">4</span>);
+  cam.<span style="color: #1e90ff">rotateX</span>(-<span style="color: #009999">3.1415</span>/<span style="color: #009999">4</span>);
+  
+  <span style="color: #aaaaaa; font-style: italic">// Serial Port (added dialog)</span>
+  <span style="color: #0000aa">try</span> {
+    <span style="color: #0000aa">if</span> (Serial.<span style="color: #1e90ff">list</span>().<span style="color: #1e90ff">length</span> == <span style="color: #009999">0</span>) {
+      println(<span style="color: #aa5500">&quot;No serial device connected&quot;</span>);
+      exit();
+    }
+    <span style="color: #0000aa">else</span> <span style="color: #00aa00">if</span> (Serial.<span style="color: #1e90ff">list</span>().<span style="color: #1e90ff">length</span> == <span style="color: #009999">1</span>) {
+      <span style="color: #aaaaaa; font-style: italic">// only one device, select it (or try...)</span>
+      serial = <span style="color: #0000aa">new</span> Serial(<span style="color: #0000aa">this</span>, Serial.<span style="color: #1e90ff">list</span>()[<span style="color: #009999">0</span>], SERIAL_SPEED);
+    }
+    <span style="color: #0000aa">else</span> {
+      <span style="color: #aaaaaa; font-style: italic">// more than 1, show dialog</span>
+      String[] ports = Serial.<span style="color: #1e90ff">list</span>();
+      
+      String selection = (String) JOptionPane.<span style="color: #1e90ff">showInputDialog</span>(<span style="color: #0000aa">null</span>,
+          <span style="color: #aa5500">&quot;Select the serial port that corresponds to the Lidar:&quot;</span>,
+          <span style="color: #aa5500">&quot;Select serial port&quot;</span>,
+          JOptionPane.<span style="color: #1e90ff">PLAIN_MESSAGE</span>,
+          <span style="color: #0000aa">null</span>,
+          ports,
+          ports[ports.<span style="color: #1e90ff">length</span>-<span style="color: #009999">1</span>]);
+      
+      <span style="color: #0000aa">if</span> (selection == <span style="color: #0000aa">null</span> || selection.<span style="color: #1e90ff">isEmpty</span>()) 
+        exit();
+
+      serial = <span style="color: #0000aa">new</span> Serial(<span style="color: #0000aa">this</span>, selection, SERIAL_SPEED); <span style="color: #aaaaaa; font-style: italic">// change baud rate to your liking</span>
+    }
+  }
+  <span style="color: #0000aa">catch</span> (Exception e) { 
+    println(<span style="color: #aa5500">&quot;Not able to connect to serialPort (error:&quot;</span>+e.<span style="color: #1e90ff">getClass</span>().<span style="color: #1e90ff">getName</span>()+<span style="color: #aa5500">&quot; &quot;</span> + e.<span style="color: #1e90ff">getMessage</span>() + <span style="color: #aa5500">&quot;)&quot;</span>);
+    exit();
+  }
+}
+
+<span style="color: #00aaaa">void</span> <span style="color: #00aa00">draw</span>() {
+  <span style="color: #aaaaaa; font-style: italic">// Prepare window &amp; drawing</span>
+  perspective();
+  background(<span style="color: #009999">33</span>);
+  stroke(<span style="color: #009999">255</span>,<span style="color: #009999">255</span>,<span style="color: #009999">255</span>);
+  sphere(<span style="color: #009999">0.5f</span>);
+  fill(<span style="color: #009999">50</span>);
+  ellipse(<span style="color: #009999">0</span>, <span style="color: #009999">0</span>, <span style="color: #009999">10</span>, <span style="color: #009999">10</span>);
+
+  <span style="color: #aaaaaa; font-style: italic">//Read Serial Port (if we can)</span>
+  String serialString = serial.<span style="color: #1e90ff">readStringUntil</span>(lf);
+  <span style="color: #0000aa">if</span> (serialString != <span style="color: #0000aa">null</span>) {
+    String[] coordinates = split(serialString, <span style="color: #aa5500">&#39;,&#39;</span>);
+    <span style="color: #0000aa">if</span> (coordinates.<span style="color: #1e90ff">length</span> == <span style="color: #009999">4</span>) {
+      pointList.<span style="color: #1e90ff">add</span>(<span style="color: #0000aa">new</span> PVector(<span style="color: #00aaaa">float</span>(coordinates[<span style="color: #009999">0</span>]), <span style="color: #00aaaa">float</span>(coordinates[<span style="color: #009999">1</span>]), <span style="color: #00aaaa">float</span>(coordinates[<span style="color: #009999">2</span>])));
+    }
+  }
+ 
+  <span style="color: #aaaaaa; font-style: italic">// Draw the actual point cloud</span>
+  <span style="color: #0000aa">for</span> (<span style="color: #00aaaa">int</span> index = <span style="color: #009999">0</span>; index &lt; pointList.<span style="color: #1e90ff">size</span>(); index++) {
+    PVector v = pointList.<span style="color: #1e90ff">get</span>(index);
+    <span style="color: #0000aa">if</span> (index == pointList.<span style="color: #1e90ff">size</span>() - <span style="color: #009999">1</span>) {
+      <span style="color: #aaaaaa; font-style: italic">// Draw a line between Lidar and last point</span>
+      stroke(<span style="color: #009999">255</span>, <span style="color: #009999">15</span>, <span style="color: #009999">15</span>);
+      line(<span style="color: #009999">0</span>, <span style="color: #009999">0</span>, <span style="color: #009999">0</span>, v.<span style="color: #1e90ff">x</span>,v.<span style="color: #1e90ff">y</span>,v.<span style="color: #1e90ff">z</span>);
+    }
+    <span style="color: #aaaaaa; font-style: italic">// Draw point with a variable color</span>
+    stroke(<span style="color: #009999">255</span>-v.<span style="color: #1e90ff">z</span>, <span style="color: #009999">255</span>-v.<span style="color: #1e90ff">y</span>, <span style="color: #009999">255</span>-v.<span style="color: #1e90ff">x</span>);
+    point(v.<span style="color: #1e90ff">x</span>, v.<span style="color: #1e90ff">y</span>, v.<span style="color: #1e90ff">z</span>);
+  }
+}
+
+<span style="color: #aaaaaa; font-style: italic">// Handle keyboard events : movement, save &amp; clear all points.</span>
+<span style="color: #00aaaa">void</span> <span style="color: #00aa00">keyReleased</span>() {
+  <span style="color: #0000aa">if</span> (key ==<span style="color: #aa5500">&#39;x&#39;</span>) {
+    <span style="color: #aaaaaa; font-style: italic">// erase all points</span>
+    pointList.<span style="color: #1e90ff">clear</span>();
+  } <span style="color: #0000aa">else</span> <span style="color: #0000aa">if</span>(key == <span style="color: #aa5500">&#39;s&#39;</span>){
+    selectOutput(<span style="color: #aa5500">&quot;Select a file to write to:&quot;</span>, <span style="color: #aa5500">&quot;saveToFile&quot;</span>);
+  }
+  <span style="color: #0000aa">else</span> <span style="color: #00aa00">if</span> (key == CODED) {
+    <span style="color: #0000aa">if</span> (keyCode == UP) {
+      cam.<span style="color: #1e90ff">rotateX</span>(angleIncrement);
+    } <span style="color: #0000aa">else</span> <span style="color: #0000aa">if</span> (keyCode == DOWN) {
+      cam.<span style="color: #1e90ff">rotateX</span>(-angleIncrement);
+    }<span style="color: #0000aa">else</span> <span style="color: #0000aa">if</span> (keyCode == LEFT) {
+      cam.<span style="color: #1e90ff">rotateY</span>(angleIncrement);
+    }<span style="color: #0000aa">else</span> <span style="color: #0000aa">if</span> (keyCode == RIGHT) {
+      cam.<span style="color: #1e90ff">rotateY</span>(-angleIncrement);
+    }
+  }
+}
+
+<span style="color: #aaaaaa; font-style: italic">// Function to save the point cloud in the Processing install directory</span>
+<span style="color: #00aaaa">void</span> <span style="color: #00aa00">saveToFile</span>(<span style="color: #0000aa">final</span> File selection){
+  <span style="color: #0000aa">final</span> String fileName = selection.<span style="color: #1e90ff">getAbsolutePath</span>();
+  PrintWriter pw = <span style="color: #0000aa">null</span>;
+ 
+  <span style="color: #0000aa">try</span>{
+    pw = <span style="color: #0000aa">new</span> PrintWriter(<span style="color: #0000aa">new</span> FileWriter(fileName,<span style="color: #0000aa">true</span>));
+    <span style="color: #0000aa">for</span>(<span style="color: #00aaaa">int</span> i=<span style="color: #009999">0</span>;i&lt;pointList.<span style="color: #1e90ff">size</span>();i++)
+      pw.<span style="color: #1e90ff">println</span>((<span style="color: #00aaaa">int</span>)pointList.<span style="color: #1e90ff">get</span>(i).<span style="color: #1e90ff">x</span> + <span style="color: #aa5500">&quot; &quot;</span> + 
+                  (<span style="color: #00aaaa">int</span>)pointList.<span style="color: #1e90ff">get</span>(i).<span style="color: #1e90ff">y</span> + <span style="color: #aa5500">&quot; &quot;</span> +
+                  (<span style="color: #00aaaa">int</span>)pointList.<span style="color: #1e90ff">get</span>(i).<span style="color: #1e90ff">z</span>);
+  }
+  <span style="color: #0000aa">catch</span>(Exception e){
+  }
+  <span style="color: #0000aa">finally</span> {
+    <span style="color: #0000aa">if</span>(pw != <span style="color: #0000aa">null</span>) pw.<span style="color: #1e90ff">close</span>();
+  }
+}
+</pre></div>
+
+					</div>
+
+          <img class="explic"src="processing.png" alt="processing" width=50% title="Le nuage de point sur processing"/>
+          <img class="explic"src="objet.png" alt="objet" width=50% title="Un objet de test"/>
+
+          <div class="explic">
+						Le scanner fonctionne mieux avec des objets convexes, car le rayon ne peut pas accéder à des faces internes, ou dans l'objet précent, à l'intérieur des trous.
+            De même qu'il fonctionnera moins bien voir pas du tout avec des objets transparents.
+
+					</div>
+
+          <div class="explic">
+            En termes d'améliorations, on peut très bien piloter les moteurs en pas complet, demi-pas, quart de pas, 1/8 de pas ou 1/16 de pas, mais faute de temps, on n'a pas pu ajuster : on pilotait en pas complets. Grâce à la réduction proposée par les ITEC on peut gagner encore plus en résolution pour la rotation du plateau.
+            
+					</div>
+
+          <div class="explic">
+            Pour le capteur, on est limité par 1023 mesures possibles car analogique. Il est aussi beaucoup influencé par la réflectivité du matériau de l'objet à scanner. Un capteur numérique aurait été plus précis mais surtout plus cher.
+            
+					</div>
+
+          <div class="explic">
+            Qui dit plus de précision dit plus de mesures à prendre et donc le temps de scan aurait été beaucoup plus long également.
+					</div>
+					
+						
+				
+
+					
+
+
+
+
+
+
+
+
+					</div>
+
+
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+   <!-- Ces divs servent de références pour les carrés animés -->
+    <div class="box">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+
+    
+</body>
+</html>
